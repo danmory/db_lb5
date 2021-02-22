@@ -2,7 +2,8 @@ from faker import Faker
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-def config():
+# Returns configuration of database
+def get_config():
     return {
         "dbname": "postgres",
         "user": "postgres",
@@ -11,9 +12,9 @@ def config():
         "port": "5432"
     }
 
+# Connecting to database -> creating table CUSTOMERS -> inserting fake data
 def create_db(config):
     conn = psycopg2.connect(**config)
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
     cur.execute("DROP TABLE IF EXISTS customers;")
     cur.execute('''
@@ -32,19 +33,20 @@ def create_db(config):
     for i in range(100000):
         cur.execute("INSERT INTO customers (name, address, age, review) VALUES (%s, %s, %s, %s);", (fake.name(), fake.address(), fake.pyint(18, 100), fake.pystr()))
     print("Values are succesfully inserted.")
-    
+    conn.commit()
     cur.close()
     conn.close()
 
+# Analyze query and print result
 def analyze_query(cur, query):
     cur.execute("EXPLAIN ANALYZE " + query)
-    print(cur.fetchall()[0][0])
+    for item in cur.fetchall():
+        print(item[0])
 
 def main():
-    create_db(config())
-
-    conn = psycopg2.connect(**config())
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    config = get_config() 
+    create_db(config)
+    conn = psycopg2.connect(**config)
     cur = conn.cursor()
 
     query_1 = "SELECT name FROM customers WHERE age > 50 AND age < 70"
