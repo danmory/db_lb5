@@ -60,5 +60,9 @@ def main():
     analyze_query(cur, query_1)
     analyze_query(cur, query_2)
 
+    cur.close()
+    conn.close()
+    
+
 if __name__ == "__main__":
     main()
